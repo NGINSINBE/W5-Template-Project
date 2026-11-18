@@ -1,79 +1,136 @@
-using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
-// Rock - Paper - Scissors : starter script
-// Follow the slides and complete every TODO.
-// 1 = Rock, 2 = Paper, 3 = Scissors, 4 = Unknown ("?")
 public class GameController : MonoBehaviour
 {
-    Image imgYou;       // your selected image (rock, paper, scissor)
-    Image imgCom;       // computer selected image (rock, paper, scissor)
+    // Image components
+    Image imgYou;
+    Image imgCom;
 
-    Text txtYou;        // the score you win
-    Text txtCom;        // the score computer win
-    Text txtResult;     // the result
+    // TextMeshPro components
+    TMP_Text txtYou;
+    TMP_Text txtCom;
+    TMP_Text txtResult;
 
-    int cntYou = 0;     // number you win
-    int cntCom = 0;     // number computer win
-
-
-    private void InitGame()
-    {
-        // TODO (slides 37-40): find the UI objects by name and get their components.
-        // Example:
-        // imgYou = GameObject.Find("ImgYou").GetComponent<Image>();
-        // Also find: ImgCom, TxtYou, TxtCom, TxtResult_
-
-        // TODO: set the text of txtResult to "Select the button below"
-    }
+    // Score
+    int cntYou = 0;
+    int cntCom = 0;
 
     void Start()
     {
-        // init the game
         InitGame();
     }
 
-    // Update is called once per frame
+    void InitGame()
+    {
+        // Find player and computer images
+        GameObject youImage = GameObject.Find("ImgYou");
+        GameObject comImage = GameObject.Find("ImgCom");
+
+        // Find score and result texts
+        GameObject youText = GameObject.Find("TxtYou");
+        GameObject comText = GameObject.Find("TxtCom");
+        GameObject resultText = GameObject.Find("TxtResult");
+
+        // Check missing objects
+        if (youImage == null || comImage == null ||
+            youText == null || comText == null || resultText == null)
+        {
+            Debug.LogError("UI objects not found! Check their names.");
+            return;
+        }
+
+        // Get components
+        imgYou = youImage.GetComponent<Image>();
+        imgCom = comImage.GetComponent<Image>();
+
+        txtYou = youText.GetComponent<TMP_Text>();
+        txtCom = comText.GetComponent<TMP_Text>();
+        txtResult = resultText.GetComponent<TMP_Text>();
+
+        // Check missing components
+        if (imgYou == null || imgCom == null ||
+            txtYou == null || txtCom == null || txtResult == null)
+        {
+            Debug.LogError("Missing Image or TextMeshPro component!");
+            return;
+        }
+
+        // Initial images
+        imgYou.sprite = Resources.Load<Sprite>("img_4");
+        imgCom.sprite = Resources.Load<Sprite>("img_4");
+
+        // Reset scores
+        cntYou = 0;
+        cntCom = 0;
+
+        txtYou.text = "0";
+        txtCom.text = "0";
+
+        txtResult.text = "Select the button below";
+
+        Debug.Log("Game initialized successfully!");
+    }
+
     void Update()
     {
-        // exit if press escape key
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             Application.Quit();
         }
     }
 
-    // Slides 24-31: link this function to the On Click () event of every button.
-    // Pass the button itself as the GameObject parameter.
     public void OnButtonClick(GameObject buttonObject)
     {
-        Debug.Log(buttonObject.name + " clicked ");
+        Debug.Log(buttonObject.name + " clicked");
 
-        // TODO (slide 34): get the number from the first character of the button name
-        // int you = int.Parse(buttonObject.name.Substring(0, 1));
-        // CheckResult(you);
+        // Get button number
+        int you = int.Parse(buttonObject.name.Substring(0, 1));
+
+        if (you < 1 || you > 3)
+            return;
+
+        CheckResult(you);
     }
 
     void CheckResult(int yourResult)
     {
-        // TODO (slide 33): game logic
-        // 1. com = random number 1..3  ->  UnityEngine.Random.Range(1, 4)
-        // 2. k = you - com
-        // 3. k == 0              -> "Draw."
-        //    k == 1 or k == -2   -> "You win."       (cntYou++)
-        //    otherwise           -> "Computer win."  (cntCom++)
-        // 4. call SetResult(yourResult, comResult)
-        Debug.Log("Your result is: " + yourResult);
+        // Computer randomly chooses 1, 2, or 3
+        int comResult = Random.Range(1, 4);
+
+        int k = yourResult - comResult;
+
+        if (k == 0)
+        {
+            txtResult.text = "Draw!";
+        }
+        else if (k == 1 || k == -2)
+        {
+            txtResult.text = "You win!";
+            cntYou++;
+        }
+        else
+        {
+            txtResult.text = "Computer wins!";
+            cntCom++;
+        }
+
+        SetResult(yourResult, comResult);
     }
 
     void SetResult(int you, int com)
     {
-        // TODO (slide 41):
-        // 1. change imgYou.sprite and imgCom.sprite
-        //    Resources.Load("img_" + you, typeof(Sprite)) as Sprite
-        // 2. flip the computer image on the x axis: localScale = (-1, 1, 1)
-        // 3. update txtYou.text and txtCom.text with the scores
+        // Load player and computer sprites
+        imgYou.sprite = Resources.Load<Sprite>("img_" + you);
+        imgCom.sprite = Resources.Load<Sprite>("img_" + com);
+
+        // Flip computer image
+        imgCom.transform.localScale = new Vector3(-1, 1, 1);
+
+        // Update scores
+        txtYou.text = cntYou.ToString();
+        txtCom.text = cntCom.ToString();
     }
 }
