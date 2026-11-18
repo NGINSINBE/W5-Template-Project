@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
@@ -17,6 +18,9 @@ public class GameController : MonoBehaviour
     // Score
     int cntYou = 0;
     int cntCom = 0;
+
+    // Prevent playing after the game ends
+    bool gameFinished = false;
 
     void Start()
     {
@@ -65,11 +69,16 @@ public class GameController : MonoBehaviour
         // Reset scores
         cntYou = 0;
         cntCom = 0;
+        gameFinished = false;
 
         txtYou.text = "0";
         txtCom.text = "0";
 
         txtResult.text = "Select the button below";
+
+        // Reset rotations
+        imgYou.rectTransform.rotation = Quaternion.identity;
+        imgCom.rectTransform.rotation = Quaternion.identity;
 
         Debug.Log("Game initialized successfully!");
     }
@@ -84,6 +93,8 @@ public class GameController : MonoBehaviour
 
     public void OnButtonClick(GameObject buttonObject)
     {
+        if (gameFinished) return;
+
         Debug.Log(buttonObject.name + " clicked");
 
         // Get button number
@@ -118,6 +129,16 @@ public class GameController : MonoBehaviour
         }
 
         SetResult(yourResult, comResult);
+
+        // Check winner
+        if (cntYou >= 3)
+        {
+            EndGame("YOU WIN!");
+        }
+        else if (cntCom >= 3)
+        {
+            EndGame("COMPUTER WINS!");
+        }
     }
 
     void SetResult(int you, int com)
@@ -126,11 +147,31 @@ public class GameController : MonoBehaviour
         imgYou.sprite = Resources.Load<Sprite>("img_" + you);
         imgCom.sprite = Resources.Load<Sprite>("img_" + com);
 
+        // Keep player image straight
+        imgYou.rectTransform.rotation = Quaternion.identity;
+
+        // Random computer image rotation
+        float randomAngle = Random.Range(-30f, 30f);
+        imgCom.rectTransform.rotation =
+            Quaternion.Euler(0f, 0f, randomAngle);
+
         // Flip computer image
         imgCom.transform.localScale = new Vector3(-1, 1, 1);
 
         // Update scores
         txtYou.text = cntYou.ToString();
         txtCom.text = cntCom.ToString();
+    }
+
+    void EndGame(string winner)
+    {
+        gameFinished = true;
+
+        // Save winner for GameOverScene
+        PlayerPrefs.SetString("Winner", winner);
+        PlayerPrefs.Save();
+
+        // Open GameOverScene
+        SceneManager.LoadScene("GameOverScene");
     }
 }
